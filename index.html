@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Dharan the Surfer — TKK (Thanakkankulam, Madurai)</title>
+<style>
+  :root{
+    --gold:#ffc83d;
+    --deep:#0e1726;
+    --saff:#ff7a1a;
+    --green:#1fbf6b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#07101c;
+    font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,"Noto Sans Tamil",sans-serif;
+    color:#fff;user-select:none;touch-action:none}
+  #wrap{position:fixed;inset:0;overflow:hidden}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+  /* ---------- HUD ---------- */
+  #hud{position:absolute;inset:0;pointer-events:none;display:none}
+  #hud.on{display:block}
+  .panel{
+    position:absolute;background:rgba(8,16,28,.55);border:1px solid rgba(255,255,255,.14);
+    border-radius:14px;padding:8px 14px;backdrop-filter:blur(6px);
+    box-shadow:0 6px 20px rgba(0,0,0,.35)
+  }
+  #scoreBox{top:14px;left:14px;min-width:150px}
+  #scoreBox .lbl{font-size:10px;letter-spacing:2px;opacity:.65;text-transform:uppercase}
+  #scoreVal{font-size:28px;font-weight:800;line-height:1.05;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+  #distVal{font-size:12px;opacity:.8;margin-top:2px}
+  #coinBox{top:14px;right:14px;display:flex;align-items:center;gap:9px}
+  .coinIcon{width:26px;height:26px;border-radius:50%;background:
+     radial-gradient(circle at 32% 28%,#fff4b8,#ffc83d 55%,#d4890d);
+     border:2px solid #a9660a;display:flex;align-items:center;justify-content:center;
+     font-size:14px;font-weight:900;color:#7a4a04}
+  #coinVal{font-size:22px;font-weight:800}
+  #bestBox{top:80px;left:14px;font-size:11px;letter-spacing:1px;opacity:.9;padding:6px 12px}
+  #pwrBox{left:14px;bottom:14px;display:flex;flex-direction:column;gap:7px;background:none;border:none;box-shadow:none;padding:0}
+  .pwr{display:flex;align-items:center;gap:8px;background:rgba(8,16,28,.6);
+    border:1px solid rgba(255,255,255,.16);border-radius:30px;padding:5px 12px 5px 6px;font-size:12px;font-weight:700}
+  .pwr .dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
+  .pwr .bar{width:54px;height:5px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}
+  .pwr .bar i{display:block;height:100%;background:#fff;border-radius:3px}
+  #btns{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto}
+  .ibtn{width:40px;height:40px;border-radius:12px;background:rgba(8,16,28,.6);
+    border:1px solid rgba(255,255,255,.18);color:#fff;font-size:17px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+  .ibtn:active{transform:scale(.93)}
+  #toast{position:absolute;top:18%;left:50%;transform:translateX(-50%) translateY(-14px);
+    background:linear-gradient(90deg,rgba(255,122,26,.92),rgba(255,200,61,.92));
+    color:#2a1500;font-weight:800;padding:9px 20px;border-radius:30px;font-size:14px;
+    letter-spacing:.4px;opacity:0;transition:.35s;white-space:nowrap;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast small{display:block;font-size:10px;opacity:.75;font-weight:700;letter-spacing:1px}
+
+  /* ---------- Screens ---------- */
+  .screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    padding:18px;overflow:auto;background:
+      radial-gradient(900px 540px at 50% 8%,rgba(255,140,30,.26),transparent 62%),
+      linear-gradient(180deg,rgba(6,12,22,.9),rgba(6,12,22,.97))}
+  .screen.on{display:flex}
+  .card{width:min(560px,100%);text-align:center}
+  .kolam{width:76px;height:76px;margin:0 auto 6px;display:block;opacity:.95}
+  h1{margin:0;font-size:clamp(34px,8.2vw,62px);line-height:.94;font-weight:900;letter-spacing:-1.5px;
+     background:linear-gradient(180deg,#fff2c0,#ffb02e 55%,#ff6a00);
+     -webkit-background-clip:text;background-clip:text;color:transparent;
+     filter:drop-shadow(0 4px 12px rgba(255,120,0,.35))}
+  .tam{font-size:clamp(17px,4.2vw,25px);font-weight:700;color:#ffd98a;margin:6px 0 2px}
+  .sub{font-size:12px;letter-spacing:3.2px;text-transform:uppercase;opacity:.72;margin-bottom:14px}
+  .place{font-size:12.5px;opacity:.82;line-height:1.6;max-width:430px;margin:0 auto 16px;
+    border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:10px 4px}
+  .play{appearance:none;border:0;cursor:pointer;font-family:inherit;
+    background:linear-gradient(180deg,#ffd34d,#ff8a0d);color:#3d1c00;font-weight:900;
+    font-size:21px;letter-spacing:1.5px;padding:15px 52px;border-radius:40px;
+    box-shadow:0 8px 0 #b85c00,0 14px 28px rgba(0,0,0,.45);transition:.09s}
+  .play:active{transform:translateY(5px);box-shadow:0 3px 0 #b85c00,0 8px 16px rgba(0,0,0,.4)}
+  .keys{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:18px auto 0;max-width:430px;font-size:11.5px}
+  .keys div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+    border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;text-align:left}
+  kbd{background:#223;border:1px solid #445;border-bottom-width:2px;border-radius:5px;
+    padding:1px 6px;font-size:10.5px;font-family:inherit;font-weight:700;white-space:nowrap}
+  .stats{display:flex;gap:10px;justify-content:center;margin:16px 0 18px;flex-wrap:wrap}
+  .stat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;padding:11px 20px;min-width:98px}
+  .stat b{display:block;font-size:25px;font-weight:900}
+  .stat span{font-size:9.5px;letter-spacing:1.6px;opacity:.65;text-transform:uppercase}
+  .newbest{color:#7dffb0;font-weight:800;letter-spacing:2px;font-size:13px;margin-bottom:8px}
+  .foot{margin-top:16px;font-size:10px;opacity:.42;letter-spacing:1.2px}
+  .legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:10.5px;opacity:.8}
+  .legend i{font-style:normal;margin-right:4px}
+  @media (max-width:520px){ .keys{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv"></canvas>
+
+  <!-- ================= HUD ================= -->
+  <div id="hud">
+    <div class="panel" id="scoreBox">
+      <div class="lbl">Score</div>
+      <div id="scoreVal">0</div>
+      <div id="distVal">0 m · TKK Road</div>
+    </div>
+    <div class="panel" id="coinBox"><div class="coinIcon">₹</div><div id="coinVal">0</div></div>
+    <div class="panel" id="bestBox">BEST 0</div>
+    <div id="pwrBox"></div>
+    <div id="btns">
+      <button class="ibtn" id="pauseBtn" title="Pause (Esc)">❚❚</button>
+      <button class="ibtn" id="muteBtn" title="Mute (M)">♪</button>
+    </div>
+    <div id="toast"></div>
+  </div>
+
+  <!-- ================= START ================= -->
+  <div class="screen on" id="startScreen">
+    <div class="card">
+      <svg class="kolam" viewBox="0 0 100 100" aria-hidden="true">
+        <g fill="none" stroke="#ffc83d" stroke-width="2.4" stroke-linecap="round">
+          <circle cx="50" cy="50" r="9"/>
+          <path d="M50 14c9 9 9 23 0 32-9-9-9-23 0-32Z"/>
+          <path d="M50 86c9-9 9-23 0-32-9 9-9 23 0 32Z"/>
+          <path d="M14 50c9-9 23-9 32 0-9 9-23 9-32 0Z"/>
+          <path d="M86 50c-9-9-23-9-32 0 9 9 23 9 32 0Z"/>
+          <path d="M24 24c12 1 20 9 21 21-12-1-20-9-21-21Z" opacity=".7"/>
+          <path d="M76 76c-12-1-20-9-21-21 12 1 20 9 21 21Z" opacity=".7"/>
+          <path d="M76 24c-1 12-9 20-21 21 1-12 9-20 21-21Z" opacity=".7"/>
+          <path d="M24 76c1-12 9-20 21-21-1 12-9 20-21 21Z" opacity=".7"/>
+        </g>
+      </svg>
+      <h1>DHARAN<br/>THE SURFER</h1>
+      <div class="tam">தரன் தி சர்ஃபர் — தனக்கன்குளம்</div>
+      <div class="sub">TKK · Madurai · Tamil Nadu</div>
+      <div class="place">
+        Run the <b>Madurai–Thirumangalam road</b> through <b>Thanakkankulam (TKK)</b>, pincode 625006 —
+        past the AAVIN booth, the kadai street, Madura School, the petrol bunk and the village kulam,
+        with <b>Thiruparankundram hill</b> always on the horizon.
+        Dodge autos, buses and bullock carts… and don't let the <b>jallikattu kaalai</b> catch you.
+      </div>
+      <button class="play" id="playBtn">▶ ODU! (RUN)</button>
+      <div class="keys">
+        <div><kbd>◀</kbd><kbd>▶</kbd> or <kbd>A</kbd><kbd>D</kbd> &nbsp;Change lane</div>
+        <div><kbd>▲</kbd> / <kbd>W</kbd> / <kbd>Space</kbd> &nbsp;Jump</div>
+        <div><kbd>▼</kbd> / <kbd>S</kbd> &nbsp;Slide under banners</div>
+        <div><kbd>Esc</kbd> Pause &nbsp;·&nbsp; <kbd>M</kbd> Mute</div>
+      </div>
+      <div class="legend">
+        <span><i>🥤</i>Jigarthanda = coin magnet</span>
+        <span><i>🔱</i>Vel = shield</span>
+        <span><i>🌾</i>Karumbu = 2× score</span>
+      </div>
+      <div class="foot">ON MOBILE: SWIPE LEFT / RIGHT / UP / DOWN · TAP TO JUMP</div>
+    </div>
+  </div>
+
+  <!-- ================= PAUSE ================= -->
+  <div class="screen" id="pauseScreen">
+    <div class="card">
+      <h1 style="font-size:clamp(28px,7vw,48px)">PAUSED</h1>
+      <div class="tam">இடைவேளை</div>
+      <div class="sub">TKK Road</div>
+      <button class="play" id="resumeBtn">▶ RESUME</button>
+      <div style="margin-top:14px"><button class="ibtn" id="quitBtn" style="width:auto;padding:0 18px">Quit to menu</button></div>
+    </div>
+  </div>
+
+  <!-- ================= GAME OVER ================= -->
+  <div class="screen" id="overScreen">
+    <div class="card">
+      <h1 id="overTitle" style="font-size:clamp(30px,7.4vw,54px)">CAUGHT!</h1>
+      <div class="tam" id="overTam">கோயம்புத்தூர்</div>
+      <div class="sub" id="overSub">TKK · Thanakkankulam</div>
+      <div class="newbest" id="newBest" style="display:none">★ NEW VILLAGE RECORD ★</div>
+      <div class="stats">
+        <div class="stat"><b id="fScore">0</b><span>Score</span></div>
+        <div class="stat"><b id="fCoins">0</b><span>Rupees</span></div>
+        <div class="stat"><b id="fDist">0</b><span>Metres</span></div>
+        <div class="stat"><b id="fBest">0</b><span>Best</span></div>
+      </div>
+      <button class="play" id="againBtn">↻ ODU AGAIN</button>
+      <div style="margin-top:14px"><button class="ibtn" id="menuBtn" style="width:auto;padding:0 18px">Main menu</button></div>
+      <div class="foot" id="overTip">TIP: SLIDE UNDER THE THIRUVIZHA BANNERS</div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================================
+   DHARAN THE SURFER  —  an endless runner set in Thanakkankulam (TKK),
+   a village / neighbourhood in Madurai district, Tamil Nadu (PIN 625006),
+   on the Madurai–Thirumangalam road, with Thiruparankundram hill on the horizon.
+   Single file, no dependencies, pure canvas 2D + a pseudo-3D projection.
+============================================================================ */
+
+/* ---------------------------------------------------------------- canvas */
+const cv  = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, horizonY = 0;
+
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width  = Math.floor(W * DPR);
+  cv.height = Math.floor(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  horizonY = Math.round(H * 0.40);
+  skyGrad = null;
+}
+window.addEventListener('resize', resize);
+
+/* ------------------------------------------------------------ projection */
+const FOV       = 430;   // focal length
+const CAM_H     = 125;   // camera height over the tar road
+const PLAYER_Z  = 300;   // player's fixed depth
+const LANE_X    = 108;   // distance between lane centres
+const ROAD_HALF = 182;   // half width of the tar
+const FAR_Z     = 2700;
+const SEG       = 40;    // road strip length (outrun style)
+
+let camX = 0;
+function proj(x, y, z){
+  const s = FOV / z;
+  return { x: W * 0.5 + (x - camX) * s, y: horizonY + (CAM_H - y) * s, s: s };
+}
+
+/* ------------------------------------------------------------------ util */
+const rnd  = (a, b) => a + Math.random() * (b - a);
+const ri   = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp= (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* ----------------------------------------------------------------- audio */
+const Sound = (() => {
+  let AC = null, master = null, muted = false, beatT = 0, beatStep = 0;
+  function ensure(){
+    if (AC) return;
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return;
+    AC = new C();
+    master = AC.createGain();
+    master.gain.value = 0.5;
+    master.connect(AC.destination);
+  }
+  function tone(freq, dur, type, vol, slideTo){
+    if (!AC || muted) return;
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, AC.currentTime);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, AC.currentTime + dur);
+    g.gain.setValueAtTime(0.0001, AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(vol || .16, AC.currentTime + .012);
+    g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + dur);
+    o.connect(g); g.connect(master);
+    o.start(); o.stop(AC.currentTime + dur + .02);
+  }
+  function noise(dur, vol, hp){
+    if (!AC || muted) return;
+    const n = Math.floor(AC.sampleRate * dur);
+    const buf = AC.createBuffer(1, n, AC.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = AC.createBufferSource(); src.buffer = buf;
+    const f = AC.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp || 500;
+    const g = AC.createGain(); g.gain.value = vol || .2;
+    src.connect(f); f.connect(g); g.connect(master); src.start();
+  }
+  return {
+    init(){ ensure(); if (AC && AC.state === 'suspended') AC.resume(); },
+    toggle(){ muted = !muted; if (master) master.gain.value = muted ? 0 : .5; return muted; },
+    get muted(){ return muted; },
+    coin(){ tone(1180, .07, 'square', .10); setTimeout(() => tone(1760, .09, 'square', .09), 55); },
+    jump(){ tone(330, .16, 'triangle', .16, 680); },
+    land(){ noise(.07, .10, 300); },
+    slide(){ noise(.22, .13, 900); },
+    hit(){ tone(150, .32, 'sawtooth', .22, 48); noise(.2, .22, 200); },
+    power(){ [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, .14, 'triangle', .14), i * 70)); },
+    over(){ [660, 550, 440, 330, 220].forEach((f, i) => setTimeout(() => tone(f, .3, 'sawtooth', .16), i * 130)); },
+    milestone(){ [784, 988, 1175].forEach((f, i) => setTimeout(() => tone(f, .18, 'square', .12), i * 90)); },
+    /* a light tabla-ish village beat that speeds up with the run */
+    beat(dt, speedN){
+      if (!AC || muted) return;
+      const bpm = 96 + speedN * 56;
+      beatT += dt;
+      if (beatT < 60 / bpm / 2) return;
+      beatT = 0; beatStep = (beatStep + 1) % 8;
+      if (beatStep % 4 === 0) tone(92, .17, 'sine', .17, 58);        // thom
+      else if (beatStep % 4 === 2) noise(.06, .07, 1800);            // tha
+      else if (beatStep % 2 === 1) noise(.035, .035, 3000);          // ghost
+    }
+  };
+})();
+
+/* ----------------------------------------------------------------- state */
+const S = { MENU: 0, PLAY: 1, PAUSE: 2, OVER: 3 };
+let state = S.MENU;
+
+const game = {
+  dist: 0, score: 0, coins: 0, speed: 0, t: 0,
+  lane: 1, px: 0, py: 0, vy: 0, roll: 0, runT: 0,
+  grounded: true, hitFlash: 0, shakeT: 0, shake: 0,
+  chase: 0,              // 0 = bull far away, 1 = caught
+  stumbleCool: 0,
+  magnet: 0, shield: 0, dbl: 0,
+  nextSpawn: 0, nextScene: 0, nextCoins: 0,
+  landmarkIdx: 0, nextLandmark: 420,
+  objs: [], pickups: [], scenery: [], fx: [],
+  best: 0, combo: 0, lastToast: ''
+};
+
+const SPEED_MIN = 430, SPEED_MAX = 1150;
+const GRAV = 1020, JUMP_V = 305;
+const PLAYER_H = 72, ROLL_H = 34;
+
+/* ------------------------------------------------- the village landmarks */
+const LANDMARKS = [
+  ['TKK BUS STOP',            'Madurai–Thirumangalam Rd'],
+  ['AAVIN MILK BOOTH',        'Mullai Nagar Main Road'],
+  ['THANAKKANKULAM KULAM',    'the village tank that named the place'],
+  ['KADAI VEEDHI',            'the TKK shop street'],
+  ['MADURA SCHOOL',           'TKK · PIN 625006'],
+  ['INDIAN OIL BUNK',         'GST Road, Thanakkankulam'],
+  ['PRC COLONY',              '1 km from TKK junction'],
+  ['TIRUNAGAR SIGNAL',        'towards Madurai city'],
+  ['THIRUPARANKUNDRAM',       'Murugan hill temple · 3 km'],
+  ['NETHAJI NAGAR',           'Thiruparankundram block'],
+  ['VILACHERI POTTERY LANE',  'next neighbourhood'],
+  ['MADURAI BYPASS',          '11 km to Meenakshi Amman Kovil']
+];
+
+const DEATH_LINES = [
+  ['CAUGHT!',      'கதை முடிந்தது'],
+  ['AIYOO!',       'ஐயோ!'],
+  ['BULL GOT YOU', 'காளை பிடிச்சுடுச்சு'],
+  ['WIPEOUT',      'விழுந்துட்டே'],
+  ['STOPPED AT TKK','தனக்கன்குளத்தில் நின்றது']
+];
+const TIPS = [
+  'TIP: SLIDE UNDER THE THIRUVIZHA BANNERS',
+  'TIP: A COW CAN BE JUMPED, A TNSTC BUS CANNOT',
+  'TIP: JIGARTHANDA PULLS EVERY RUPEE TOWARDS YOU',
+  'TIP: THE VEL SHIELD SAVES EXACTLY ONE MISTAKE',
+  'TIP: ONE STUMBLE IS FORGIVEN — THE KAALAI REMEMBERS THE SECOND',
+  'TIP: KARUMBU DOUBLES YOUR SCORE FOR 9 SECONDS'
+];
+
+/* =========================================================================
+   TRACK GENERATION
+   Every template is hand-checked to always leave a survivable path.
+   j = jumpable, s = slide-under, b = blocking (must change lane)
+========================================================================= */
+const OB = {
+  cow:       { kind:'j', h: 42, len: 78,  w: 86 },
+  barricade: { kind:'j', h: 40, len: 26,  w: 92 },
+  hay:       { kind:'j', h: 43, len: 56,  w: 84 },
+  pothole:   { kind:'j', h: 20, len: 70,  w: 90 },
+  goat:      { kind:'j', h: 34, len: 50,  w: 60 },
+  banner:    { kind:'s', clear: 58, len: 18, w: 104 },
+  pole:      { kind:'s', clear: 55, len: 16, w: 100 },
+  auto:      { kind:'b', h: 96,  len: 96,  w: 86 },
+  cart:      { kind:'b', h: 108, len: 150, w: 90 },
+  bus:       { kind:'b', h: 162, len: 300, w: 96 },
+  lorry:     { kind:'b', h: 150, len: 240, w: 98 },
+  tempo:     { kind:'b', h: 104, len: 120, w: 88 },
+  stall:     { kind:'b', h: 118, len: 110, w: 92 }
+};
+
+const TEMPLATES = [
+  { d:0, rows:[['auto','',''  ]] },
+  { d:0, rows:[['','cow',''   ]] },
+  { d:0, rows:[['','','goat'  ]] },
+  { d:0, rows:[['barricade','barricade','barricade']] },
+  { d:0, rows:[['pothole','','' ]] },
+  { d:1, rows:[['cart','','auto']] },
+  { d:1, rows:[['banner','banner','banner']] },
+  { d:1, rows:[['bus','',''   ]] },
+  { d:1, rows:[['hay','','hay']] },
+  { d:1, rows:[['cow','cow',''  ]] },
+  { d:1, rows:[['','tempo','cow']] },
+  { d:2, rows:[['bus','bus','' ]] },
+  { d:2, rows:[['lorry','','stall']] },
+  { d:2, rows:[['','banner','cart']] },
+  { d:2, rows:[['auto','barricade','auto']] },
+  { d:2, rows:[['stall','cow','auto']] },
+  { d:3, rows:[['bus','','auto'], ['','banner','banner']] },
+  { d:3, rows:[['cart','auto',''], ['','','cow']] },
+  { d:3, rows:[['pole','pole','pole'], ['auto','','lorry']] },
+  { d:3, rows:[['bus','bus',''], ['','hay','hay']] }
+];
+
+function laneX(i){ return (i - 1) * LANE_X; }
+
+function spawnRow(zAbs, diff){
+  const pool = TEMPLATES.filter(t => t.d <= diff);
+  const tpl  = pick(pool);
+  const flip = Math.random() < .5;
+  let z = zAbs;
+  for (const row of tpl.rows){
+    const r = flip ? row.slice().reverse() : row;
+    for (let i = 0; i < 3; i++){
+      const type = r[i];
+      if (!type) continue;
+      const def = OB[type];
+      game.objs.push({ type, def, lane: i, z: z + def.len * .5, hit: false,
+                       wob: Math.random() * 6.28, tilt: rnd(-.05, .05) });
+    }
+    z += 420 + game.speed * .42;
+  }
+  return z - zAbs;
+}
+
+function spawnCoinRun(zAbs){
+  const lane = ri(0, 2);
+  const n = ri(5, 10);
+  const arc = Math.random() < .42;              // arc = jump line over something
+  for (let i = 0; i < n; i++){
+    const t = n === 1 ? 0 : i / (n - 1);
+    const y = arc ? Math.sin(t * Math.PI) * 58 + 16 : 20;
+    game.pickups.push({ kind:'coin', lane, z: zAbs + i * 62, y, got:false, sp: Math.random()*6.28,
+                        ox: 0, oy: 0 });
+  }
+  return n * 62;
+}
+
+function spawnPower(zAbs){
+  const kinds = ['magnet','shield','dbl'];
+  game.pickups.push({ kind: pick(kinds), lane: ri(0,2), z: zAbs, y: 44, got:false, sp:0, ox:0, oy:0 });
+}
+
+/* roadside scenery -------------------------------------------------------- */
+const SHOP_NAMES = ['TKK KADAI','TEA KADAI','MEENAKSHI STORES','AMMAN XEROX','PANDIAN MESS',
+                    'TIRUNAGAR TAILOR','625006 MEDICALS','VEL AUTO WORKS','MURUGAN SALOON'];
+const SCENE_TYPES = ['palm','palm','banana','hut','shop','lamp','pole2','gopuram',
+                     'aavin','school','bunk','tank','bus_stop','hoard','kulam','rock','cycle'];
+function spawnScene(zAbs){
+  const side = Math.random() < .5 ? -1 : 1;
+  const type = pick(SCENE_TYPES);
+  const off  = ROAD_HALF + rnd(55, 230);
+  game.scenery.push({ type, z: zAbs, x: side * off, sway: Math.random() * 6.28, sc: rnd(.85, 1.25),
+                      label: pick(SHOP_NAMES) });
+  if (Math.random() < .55){
+    const t2 = pick(SCENE_TYPES);
+    game.scenery.push({ type: t2, z: zAbs + rnd(20, 90), x: -side * (ROAD_HALF + rnd(55, 240)),
+                        sway: Math.random() * 6.28, sc: rnd(.85, 1.25), label: pick(SHOP_NAMES) });
+  }
+}
+
+/* =========================================================================
+   GAME FLOW
+========================================================================= */
+function resetGame(){
+  game.dist = 0; game.score = 0; game.coins = 0; game.speed = SPEED_MIN; game.t = 0;
+  game.lane = 1; game.px = 0; game.py = 0; game.vy = 0; game.roll = 0; game.runT = 0;
+  game.grounded = true; game.hitFlash = 0; game.shakeT = 0; game.shake = 0;
+  game.chase = 0; game.stumbleCool = 0;
+  game.magnet = 0; game.shield = 0; game.dbl = 0;
+  game.objs.length = 0; game.pickups.length = 0; game.scenery.length = 0; game.fx.length = 0;
+  game.nextSpawn = 950; game.nextScene = 0; game.nextCoins = 640;
+  game.landmarkIdx = 0; game.nextLandmark = 430;
+  camX = 0;
+  while (game.nextScene < FAR_Z){ spawnScene(game.nextScene); game.nextScene += rnd(85, 200); }
+}
+
+function startGame(){
+  Sound.init();
+  resetGame();
+  state = S.PLAY;
+  show('startScreen', false); show('overScreen', false); show('pauseScreen', false);
+  document.getElementById('hud').classList.add('on');
+  toast('THANAKKANKULAM', 'TKK · MADURAI DISTRICT · PIN 625006');
+}
+
+function gameOver(reason){
+  state = S.OVER;
+  Sound.over();
+  const dl = reason === 'bull' ? DEATH_LINES[2] : pick(DEATH_LINES);
+  document.getElementById('overTitle').textContent = dl[0];
+  document.getElementById('overTam').textContent   = dl[1];
+  document.getElementById('overSub').textContent   =
+     (LANDMARKS[(game.landmarkIdx - 1 + LANDMARKS.length) % LANDMARKS.length][0]) + ' · TKK';
+  const sc = Math.floor(game.score);
+  const isBest = sc > game.best;
+  if (isBest){ game.best = sc; try{ localStorage.setItem('dharan_best', String(sc)); }catch(e){} }
+  document.getElementById('newBest').style.display = isBest ? 'block' : 'none';
+  document.getElementById('fScore').textContent = sc.toLocaleString('en-IN');
+  document.getElementById('fCoins').textContent = game.coins;
+  document.getElementById('fDist').textContent  = Math.floor(game.dist / 10).toLocaleString('en-IN');
+  document.getElementById('fBest').textContent  = game.best.toLocaleString('en-IN');
+  document.getElementById('overTip').textContent = pick(TIPS);
+  show('overScreen', true);
+  document.getElementById('hud').classList.remove('on');
+}
+
+function show(id, on){ document.getElementById(id).classList.toggle('on', !!on); }
+
+let toastTimer = null;
+function toast(main, sub){
+  const el = document.getElementById('toast');
+  el.innerHTML = main + (sub ? '<small>' + sub + '</small>' : '');
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2100);
+}
+
+/* =========================================================================
+   INPUT
+========================================================================= */
+function moveLane(d){
+  if (state !== S.PLAY) return;
+  const n = clamp(game.lane + d, 0, 2);
+  if (n !== game.lane){ game.lane = n; Sound.slide(); }
+}
+function doJump(){
+  if (state !== S.PLAY) return;
+  if (game.grounded){ game.vy = JUMP_V; game.grounded = false; game.roll = 0; Sound.jump(); }
+}
+function doRoll(){
+  if (state !== S.PLAY) return;
+  if (!game.grounded){ game.vy = Math.min(game.vy, -120); }  // fast-fall
+  game.roll = .55; Sound.slide();
+}
+
+window.addEventListener('keydown', e => {
+  const k = e.key;
+  if ([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k)) e.preventDefault();
+  if (state === S.MENU || state === S.OVER){
+    if (k === ' ' || k === 'Enter'){ startGame(); }
+    return;
+  }
+  if (k === 'Escape' || k === 'p' || k === 'P'){ togglePause(); return; }
+  if (k === 'm' || k === 'M'){ document.getElementById('muteBtn').click(); return; }
+  if (state !== S.PLAY) return;
+  if (k === 'ArrowLeft'  || k === 'a' || k === 'A') moveLane(-1);
+  if (k === 'ArrowRight' || k === 'd' || k === 'D') moveLane( 1);
+  if (k === 'ArrowUp'    || k === 'w' || k === 'W' || k === ' ') doJump();
+  if (k === 'ArrowDown'  || k === 's' || k === 'S') doRoll();
+});
+
+let tx = 0, ty = 0, tt = 0, swiped = false;
+cv.addEventListener('touchstart', e => {
+  const t = e.changedTouches[0]; tx = t.clientX; ty = t.clientY; tt = performance.now(); swiped = false;
+  Sound.init();
+}, { passive:true });
+cv.addEventListener('touchmove', e => {
+  if (swiped || state !== S.PLAY) return;
+  const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+  if (Math.hypot(dx, dy) < 32) return;
+  swiped = true;
+  if (Math.abs(dx) > Math.abs(dy)) moveLane(dx > 0 ? 1 : -1);
+  else dy < 0 ? doJump() : doRoll();
+}, { passive:true });
+cv.addEventListener('touchend', e => {
+  if (swiped) return;
+  if (performance.now() - tt > 400) return;
+  if (state === S.PLAY) doJump();
+}, { passive:true });
+cv.addEventListener('mousedown', () => { Sound.init(); if (state === S.PLAY) doJump(); });
+
+function togglePause(){
+  if (state === S.PLAY){ state = S.PAUSE; show('pauseScreen', true); }
+  else if (state === S.PAUSE){ state = S.PLAY; show('pauseScreen', false); }
+}
+document.getElementById('playBtn').onclick   = startGame;
+document.getElementById('againBtn').onclick  = startGame;
+document.getElementById('resumeBtn').onclick = togglePause;
+document.getElementById('pauseBtn').onclick  = togglePause;
+document.getElementById('quitBtn').onclick   = () => { state = S.MENU; show('pauseScreen', false); show('startScreen', true); document.getElementById('hud').classList.remove('on'); };
+document.getElementById('menuBtn').onclick   = () => { state = S.MENU; show('overScreen', false); show('startScreen', true); };
+document.getElementById('muteBtn').onclick   = () => {
+  Sound.init();
+  const m = Sound.toggle();
+  document.getElementById('muteBtn').textContent = m ? '🔇' : '♪';
+};
+
+/* =========================================================================
+   UPDATE
+========================================================================= */
+function update(dt){
+  game.t += dt;
+
+  if (state !== S.PLAY){
+    // idle drift on the menu so the village keeps moving behind the UI
+    game.dist += 250 * dt;
+    while (game.nextScene < game.dist + FAR_Z){
+      spawnScene(game.nextScene);
+      game.nextScene += rnd(85, 200);
+    }
+    recycleScenery();
+    return;
+  }
+
+  /* speed ramp */
+  const target = Math.min(SPEED_MAX, SPEED_MIN + game.dist * 0.055);
+  game.speed += (target - game.speed) * Math.min(1, dt * .6);
+  const speedN = (game.speed - SPEED_MIN) / (SPEED_MAX - SPEED_MIN);
+  Sound.beat(dt, speedN);
+
+  game.dist  += game.speed * dt;
+  game.score += game.speed * dt * 0.09 * (game.dbl > 0 ? 2 : 1);
+
+  /* lane / horizontal */
+  const tgtX = laneX(game.lane);
+  game.px += (tgtX - game.px) * Math.min(1, dt * 13);
+  camX = game.px * 0.36;
+
+  /* vertical */
+  if (!game.grounded){
+    game.vy -= GRAV * dt;
+    game.py += game.vy * dt;
+    if (game.py <= 0){ game.py = 0; game.vy = 0; game.grounded = true; Sound.land(); puff(); }
+  }
+  if (game.roll > 0){ game.roll -= dt; if (game.roll < 0) game.roll = 0; }
+  game.runT += dt * (6 + speedN * 7);
+
+  /* timers */
+  game.magnet = Math.max(0, game.magnet - dt);
+  game.dbl    = Math.max(0, game.dbl    - dt);
+  game.hitFlash = Math.max(0, game.hitFlash - dt * 2.4);
+  game.stumbleCool = Math.max(0, game.stumbleCool - dt);
+  if (game.shakeT > 0){ game.shakeT -= dt; game.shake = game.shakeT * 26; } else game.shake = 0;
+
+  /* the kaalai slowly backs off when you run clean */
+  game.chase = clamp(game.chase - dt * 0.17, 0, 1);
+
+  /* ---- generation ---- */
+  const diff = clamp(Math.floor(game.dist / 2600), 0, 3);
+  while (game.nextSpawn < game.dist + FAR_Z){
+    const used = spawnRow(game.nextSpawn, diff);
+    game.nextSpawn += used + 330 + game.speed * .48 + rnd(0, 180);
+  }
+  while (game.nextCoins < game.dist + FAR_Z){
+    const used = spawnCoinRun(game.nextCoins);
+    if (Math.random() < .16) spawnPower(game.nextCoins + used + 170);
+    game.nextCoins += used + rnd(520, 1300);
+  }
+  while (game.nextScene < game.dist + FAR_Z){
+    spawnScene(game.nextScene);
+    game.nextScene += rnd(85, 200);
+  }
+
+  /* ---- landmark toasts ---- */
+  if (game.dist / 10 > game.nextLandmark){
+    const lm = LANDMARKS[game.landmarkIdx % LANDMARKS.length];
+    game.landmarkIdx++;
+    game.nextLandmark += 430;
+    toast('▸ ' + lm[0], lm[1]);
+    Sound.milestone();
+    game.score += 120;
+  }
+
+  /* ---- player box ---- */
+  const pTop = game.py + (game.roll > 0 ? ROLL_H : PLAYER_H);
+
+  /* ---- obstacles ---- */
+  for (let i = game.objs.length - 1; i >= 0; i--){
+    const o = game.objs[i];
+    const rz = o.z - game.dist + PLAYER_Z;         // live z
+    if (rz < 40){ game.objs.splice(i, 1); continue; }
+    if (o.hit){ o.prz = rz; continue; }
+    const half = o.def.len * .5 + 26;
+    const prz  = (o.prz === undefined) ? rz + 1e6 : o.prz;
+    o.prz = rz;
+    // overlap this frame OR the object's centre jumped past the player (anti-tunnelling)
+    const touching = Math.abs(rz - PLAYER_Z) < half || (prz > PLAYER_Z && rz <= PLAYER_Z);
+    if (touching && o.lane === game.lane && Math.abs(game.px - laneX(o.lane)) < 62){
+      let crash = false, fatal = false;
+      if (o.def.kind === 'j'){ if (game.py < o.def.h * 0.62) crash = true; }
+      else if (o.def.kind === 's'){ if (pTop > o.def.clear) crash = true; }
+      else { crash = true; fatal = o.def.len > 200; }   // buses & lorries are unforgiving
+      if (crash){
+        o.hit = true;
+        onCrash(fatal, laneX(o.lane), o.def.kind === 's' ? o.def.clear : (o.def.h || 60));
+      }
+    }
+  }
+
+  /* ---- pickups ---- */
+  for (let i = game.pickups.length - 1; i >= 0; i--){
+    const p = game.pickups[i];
+    const rz = p.z - game.dist + PLAYER_Z;
+    if (rz < 40){ game.pickups.splice(i, 1); continue; }
+    p.sp += dt * 5;
+
+    // magnet drag
+    if (p.kind === 'coin' && game.magnet > 0 && rz < PLAYER_Z + 760){
+      const tX = game.px, tY = game.py + 34;
+      p.ox = lerp(p.ox, tX - laneX(p.lane), Math.min(1, dt * 3.1));
+      p.oy = lerp(p.oy, tY - p.y,          Math.min(1, dt * 3.1));
+    }
+    const px = laneX(p.lane) + p.ox, py = p.y + p.oy;
+    const grabZ = p.kind === 'coin' ? 70 : 80;
+    const prz2 = (p.prz === undefined) ? rz + 1e6 : p.prz;
+    p.prz = rz;
+    const inZ = Math.abs(rz - PLAYER_Z) < grabZ || (prz2 > PLAYER_Z && rz <= PLAYER_Z);
+    if (inZ &&
+        Math.abs(px - game.px) < (game.magnet > 0 ? 150 : 62) &&
+        py > game.py - 26 && py < pTop + 34){
+      collect(p, px, py);
+      game.pickups.splice(i, 1);
+    }
+  }
+
+  recycleScenery();
+
+  /* ---- particles ---- */
+  for (let i = game.fx.length - 1; i >= 0; i--){
+    const f = game.fx[i];
+    f.life -= dt;
+    if (f.life <= 0){ game.fx.splice(i, 1); continue; }
+    f.x += f.vx * dt; f.y += f.vy * dt; f.z -= game.speed * dt * (f.world ? 1 : 0);
+    f.vy -= (f.g || 0) * dt;
+  }
+
+  /* ---- the bull ---- */
+  if (game.chase >= 1) gameOver('bull');
+
+  updateHUD();
+}
+
+function recycleScenery(){
+  for (let i = game.scenery.length - 1; i >= 0; i--){
+    const s = game.scenery[i];
+    if (s.z - game.dist + PLAYER_Z < 30) game.scenery.splice(i, 1);
+  }
+}
+
+function onCrash(fatal, x, h){
+  Sound.hit();
+  game.shakeT = .35;
+  game.hitFlash = 1;
+  burst(x, h, '#ffd34d', 18);
+
+  if (game.shield > 0){
+    game.shield = 0;
+    toast('VEL SHIELD BROKE', 'one mistake forgiven');
+    return;
+  }
+  if (fatal){ game.chase = 1; gameOver('crash'); return; }
+
+  if (game.stumbleCool > 0 || game.chase > .62){ game.chase = 1; gameOver('bull'); return; }
+  game.stumbleCool = 1.6;
+  game.chase = clamp(game.chase + .45, 0, 1);
+  game.speed = Math.max(SPEED_MIN, game.speed * .62);
+  game.combo = 0;
+  toast('AIYOO! STUMBLE', 'the kaalai is gaining — don\u2019t hit again');
+}
+
+function collect(p, px, py){
+  if (p.kind === 'coin'){
+    game.coins++;
+    game.score += 12 * (game.dbl > 0 ? 2 : 1);
+    Sound.coin();
+    burst(px, py, '#ffd34d', 6);
+  } else {
+    Sound.power();
+    burst(px, py, '#8ef5c0', 16);
+    if (p.kind === 'magnet'){ game.magnet = 9;  toast('JIGARTHANDA!', 'coin magnet · 9s'); }
+    if (p.kind === 'shield'){ game.shield = 1;  toast('VEL SHIELD!',  'blocks one hit'); }
+    if (p.kind === 'dbl')   { game.dbl    = 9;  toast('KARUMBU 2×!',  'double score · 9s'); }
+  }
+}
+
+function burst(x, y, col, n){
+  for (let i = 0; i < n; i++){
+    game.fx.push({ x, y, z: PLAYER_Z, vx: rnd(-130,130), vy: rnd(40,210), g: 360,
+                   life: rnd(.3,.7), max:.7, col, r: rnd(2,5), world:false });
+  }
+}
+function puff(){
+  for (let i = 0; i < 7; i++){
+    game.fx.push({ x: game.px + rnd(-18,18), y: rnd(2,12), z: PLAYER_Z, vx: rnd(-70,70), vy: rnd(10,60),
+                   g: 60, life: rnd(.25,.5), max:.5, col:'#d9c7a2', r: rnd(3,7), world:false });
+  }
+}
+
+/* =========================================================================
+   HUD
+========================================================================= */
+let hudT = 0;
+function updateHUD(){
+  document.getElementById('scoreVal').textContent = Math.floor(game.score).toLocaleString('en-IN');
+  document.getElementById('distVal').textContent  =
+      Math.floor(game.dist / 10).toLocaleString('en-IN') + ' m · ' +
+      LANDMARKS[game.landmarkIdx % LANDMARKS.length][0];
+  document.getElementById('coinVal').textContent  = game.coins;
+  document.getElementById('bestBox').textContent  = 'BEST ' + game.best.toLocaleString('en-IN');
+
+  const box = document.getElementById('pwrBox');
+  const rows = [];
+  if (game.magnet > 0) rows.push(['🥤','JIGARTHANDA', game.magnet / 9, '#ff9ec4']);
+  if (game.dbl    > 0) rows.push(['🌾','2× SCORE',    game.dbl / 9,    '#ffd34d']);
+  if (game.shield > 0) rows.push(['🔱','VEL SHIELD',  1,               '#7dd3ff']);
+  const key = rows.map(r => r[1] + Math.round(r[2] * 20)).join('|');
+  if (key !== box.dataset.k){
+    box.dataset.k = key;
+    box.innerHTML = rows.map(r =>
+      '<div class="pwr"><span class="dot">' + r[0] + '</span>' + r[1] +
+      '<span class="bar"><i style="width:' + (r[2]*100).toFixed(0) + '%;background:' + r[3] + '"></i></span></div>'
+    ).join('');
+  }
+}
+
+/* =========================================================================
+   RENDER
+========================================================================= */
+let skyGrad = null;
+function drawSky(){
+  if (!skyGrad){
+    skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY + 40);
+    skyGrad.addColorStop(0,   '#1a3f78');
+    skyGrad.addColorStop(.42, '#4f7fb8');
+    skyGrad.addColorStop(.72, '#e8a05c');
+    skyGrad.addColorStop(1,   '#ffd9a0');
+  }
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, horizonY + 42);
+
+  // sun over the hill
+  const sx = W * .5 - camX * .08, sy = horizonY - H * .10;
+  const g = ctx.createRadialGradient(sx, sy, 2, sx, sy, H * .17);
+  g.addColorStop(0, 'rgba(255,245,200,.95)');
+  g.addColorStop(.25,'rgba(255,196,110,.55)');
+  g.addColorStop(1,  'rgba(255,170,80,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, H * .17, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#fff3cd'; ctx.beginPath(); ctx.arc(sx, sy, H * .034, 0, 6.2832); ctx.fill();
+
+  // slow clouds
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  for (let i = 0; i < 5; i++){
+    const w = 120 + i * 34;
+    const x = ((game.dist * .012 + i * 420) % (W + 420)) - 210 - camX * .05;
+    const y = horizonY - H * (.30 - i * .035);
+    ctx.beginPath();
+    ctx.ellipse(x, y, w, w * .17, 0, 0, 6.2832);
+    ctx.ellipse(x + w * .4, y - w * .09, w * .55, w * .16, 0, 0, 6.2832);
+    ctx.fill();
+  }
+}
+
+/* Thiruparankundram-style hills + distant gopuram on the horizon */
+function drawHills(){
+  const par = -camX * .22;
+  ctx.save();
+  // far range
+  ctx.fillStyle = '#6a7fa6';
+  hillRange(par * .5, horizonY, H * .13, 420, 7);
+  // the big hill (Thiruparankundram) with its temple
+  ctx.fillStyle = '#4e5f85';
+  const hx = W * .5 + par * .8 - 150;
+  bigHill(hx, horizonY + 4, H * .20, 460);
+  ctx.fillStyle = '#3d4d6e';
+  bigHill(hx + 380, horizonY + 4, H * .13, 300);
+  // tree line
+  ctx.fillStyle = '#2f5a3d';
+  ctx.beginPath();
+  ctx.moveTo(0, horizonY + 6);
+  for (let x = 0; x <= W; x += 22){
+    const h = 8 + Math.sin((x + par * 2) * .035) * 5 + Math.sin((x + par) * .011) * 7;
+    ctx.lineTo(x, horizonY + 6 - h);
+  }
+  ctx.lineTo(W, horizonY + 10); ctx.lineTo(0, horizonY + 10); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function hillRange(off, base, h, wv, n){
+  ctx.beginPath(); ctx.moveTo(-50, base + 6);
+  for (let i = 0; i <= n; i++){
+    const x = -50 + (i / n) * (W + 100);
+    const y = base - h * (0.45 + 0.55 * Math.abs(Math.sin((x + off) / wv * 1.7 + i)));
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W + 50, base + 6); ctx.closePath(); ctx.fill();
+}
+function bigHill(cx, base, h, w){
+  ctx.beginPath();
+  ctx.moveTo(cx - w * .5, base);
+  ctx.quadraticCurveTo(cx - w * .26, base - h * .92, cx - w * .02, base - h);
+  ctx.quadraticCurveTo(cx + w * .22, base - h * .88, cx + w * .5, base);
+  ctx.closePath(); ctx.fill();
+  // tiny white temple on top
+  const tx = cx - w * .02, ty = base - h;
+  ctx.save(); ctx.fillStyle = 'rgba(255,255,255,.75)';
+  ctx.fillRect(tx - 5, ty - 11, 10, 11);
+  ctx.beginPath(); ctx.moveTo(tx - 7, ty - 11); ctx.lineTo(tx, ty - 20); ctx.lineTo(tx + 7, ty - 11); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+/* ------------------------------------------------------------- the road */
+function drawRoad(){
+  const frac = game.dist % SEG;
+  const base = Math.floor(game.dist / SEG);
+  const nMax = Math.ceil(FAR_Z / SEG);
+  // far -> near, strip boundaries anchored to world space so the tar scrolls
+  for (let n = nMax; n >= 2; n--){
+    const zF = n * SEG - frac;
+    const zN = (n - 1) * SEG - frac;
+    if (zN < 55) continue;
+    const zi = n + base;
+    const p1 = proj(0, 0, zF), p2 = proj(0, 0, zN);
+    if (p2.y < horizonY) continue;
+    const even = zi % 2 === 0;
+
+    // grass / dirt
+    ctx.fillStyle = even ? '#8a9c4e' : '#7f9147';
+    ctx.fillRect(0, p1.y, W, p2.y - p1.y + 1);
+
+    const e1 = ROAD_HALF * p1.s, e2 = ROAD_HALF * p2.s;
+    const s1 = (ROAD_HALF + 36) * p1.s, s2 = (ROAD_HALF + 36) * p2.s;
+
+    // dusty shoulder
+    ctx.fillStyle = even ? '#c6ab79' : '#bda471';
+    quad(p1.x - s1, p1.y, p1.x + s1, p1.y, p2.x + s2, p2.y, p2.x - s2, p2.y);
+
+    // tar
+    ctx.fillStyle = even ? '#48494f' : '#434449';
+    quad(p1.x - e1, p1.y, p1.x + e1, p1.y, p2.x + e2, p2.y, p2.x - e2, p2.y);
+
+    // white edge + rumble
+    if (even){
+      ctx.fillStyle = '#e9e6dc';
+      const w1 = 5 * p1.s, w2 = 5 * p2.s;
+      quad(p1.x - e1, p1.y, p1.x - e1 + w1, p1.y, p2.x - e2 + w2, p2.y, p2.x - e2, p2.y);
+      quad(p1.x + e1 - w1, p1.y, p1.x + e1, p1.y, p2.x + e2, p2.y, p2.x + e2 - w2, p2.y);
+    }
+    // dashed lane lines (3 segments on, 3 off)
+    if (zi % 6 < 3){
+      ctx.fillStyle = '#f0ead8';
+      for (const lx of [-LANE_X * .5, LANE_X * .5]){
+        const a1 = p1.x + lx * p1.s, a2 = p2.x + lx * p2.s;
+        const w1 = 3.4 * p1.s, w2 = 3.4 * p2.s;
+        quad(a1 - w1, p1.y, a1 + w1, p1.y, a2 + w2, p2.y, a2 - w2, p2.y);
+      }
+    }
+    // patched tar blotches for village-road texture
+    if (zi % 23 === 0){
+      ctx.fillStyle = 'rgba(30,30,34,.45)';
+      const bx = p1.x + Math.sin(zi) * LANE_X * p1.s;
+      quad(bx - 40*p1.s, p1.y, bx + 36*p1.s, p1.y, bx + 30*p2.s, p2.y, bx - 44*p2.s, p2.y);
+    }
+  }
+}
+function quad(x1,y1,x2,y2,x3,y3,x4,y4){
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.lineTo(x3,y3); ctx.lineTo(x4,y4); ctx.closePath(); ctx.fill();
+}
+
+/* ---------------------------------------------------- generic sprite frame */
+function sprite(x, z, fn, data){
+  const p = proj(x, 0, z);
+  if (p.y < horizonY - 4 || p.s <= 0) return;
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.scale(p.s, p.s);
+  fn(data, p.s);
+  ctx.restore();
+}
+function shadow(w, a){
+  ctx.fillStyle = 'rgba(20,16,10,' + (a === undefined ? .3 : a) + ')';
+  ctx.beginPath(); ctx.ellipse(0, 0, w, w * .26, 0, 0, 6.2832); ctx.fill();
+}
+
+/* ====================== ROADSIDE SCENERY DRAWINGS ====================== */
+function drawPalm(d){
+  const sw = Math.sin(game.t * 1.3 + d.sway) * .06;
+  const h = 150 * d.sc;
+  shadow(16, .22);
+  ctx.save(); ctx.rotate(sw);
+  ctx.strokeStyle = '#8a6a3f'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(6, -h * .55, 2, -h); ctx.stroke();
+  ctx.fillStyle = '#2f7a3e';
+  for (let i = 0; i < 7; i++){
+    const a = -Math.PI * .5 + (i - 3) * .44;
+    ctx.save(); ctx.translate(2, -h); ctx.rotate(a);
+    ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(34, -12, 68, 6);
+    ctx.quadraticCurveTo(34, 2, 0, 7);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = '#b5862f';
+  for (let i = 0; i < 4; i++){ ctx.beginPath(); ctx.arc(-6 + i * 5, -h + 10, 4, 0, 6.2832); ctx.fill(); }
+  ctx.restore();
+}
+function drawBanana(d){
+  const sw = Math.sin(game.t * 1.6 + d.sway) * .07;
+  const h = 76 * d.sc;
+  shadow(14, .2);
+  ctx.save(); ctx.rotate(sw);
+  ctx.fillStyle = '#4a7c2f'; ctx.fillRect(-4, -h, 8, h);
+  ctx.fillStyle = '#3d8a35';
+  for (let i = 0; i < 6; i++){
+    const a = -1.8 + i * .62;
+    ctx.save(); ctx.translate(0, -h); ctx.rotate(a);
+    ctx.beginPath(); ctx.ellipse(28, 0, 30, 9, 0, 0, 6.2832); ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function drawHut(d){
+  const w = 70 * d.sc, h = 48 * d.sc;
+  shadow(w * .8, .25);
+  ctx.fillStyle = '#d9c9a8'; ctx.fillRect(-w/2, -h, w, h);
+  ctx.fillStyle = '#8c6b3f';
+  ctx.beginPath(); ctx.moveTo(-w*.62, -h); ctx.lineTo(0, -h - 34*d.sc); ctx.lineTo(w*.62, -h); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#6d4f2a';
+  for (let i = -3; i <= 3; i++){
+    ctx.fillRect(i * w*.17, -h - 2, 2, 2);
+  }
+  ctx.fillStyle = '#5a3f22'; ctx.fillRect(-9*d.sc, -h*.72, 18*d.sc, h*.72);
+  ctx.fillStyle = '#2f6fa8'; ctx.fillRect(w*.22, -h*.74, 13*d.sc, 13*d.sc);
+}
+function drawShop(d){
+  const w = 96 * d.sc, h = 62 * d.sc;
+  shadow(w * .75, .25);
+  ctx.fillStyle = '#f0e2c2'; ctx.fillRect(-w/2, -h, w, h);
+  ctx.fillStyle = '#2b6a4c'; ctx.fillRect(-w/2, -h, w, 15 * d.sc);         // signboard
+  ctx.fillStyle = '#ffe9a8';
+  ctx.font = 'bold ' + (10 * d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(d.label || 'TKK KADAI', 0, -h + 11.5 * d.sc);
+  ctx.fillStyle = '#3a3a3a'; ctx.fillRect(-w*.34, -h*.62, w*.3, h*.62);    // dark shop mouth
+  ctx.fillStyle = '#c4452f';                                               // awning
+  for (let i = 0; i < 6; i++){
+    ctx.fillStyle = i % 2 ? '#c4452f' : '#f4f1e6';
+    ctx.fillRect(-w/2 + i * w/6, -h * .72, w/6, 9 * d.sc);
+  }
+  ctx.fillStyle = '#ffd34d';
+  for (let i = 0; i < 4; i++){ ctx.beginPath(); ctx.arc(w*.16 + i*9*d.sc, -h*.3, 4*d.sc, 0, 6.2832); ctx.fill(); }
+}
+function drawLamp(d){
+  const h = 112 * d.sc;
+  shadow(8, .2);
+  ctx.strokeStyle = '#8d8d93'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -h);
+  ctx.quadraticCurveTo(0, -h - 16, -20, -h - 16); ctx.stroke();
+  ctx.fillStyle = '#fff2b0'; ctx.beginPath(); ctx.ellipse(-22, -h - 14, 9, 5, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = 'rgba(255,230,140,.22)';
+  ctx.beginPath(); ctx.moveTo(-22, -h-12); ctx.lineTo(-56, 0); ctx.lineTo(12, 0); ctx.closePath(); ctx.fill();
+}
+function drawPole2(d){
+  const h = 128 * d.sc;
+  shadow(8, .2);
+  ctx.fillStyle = '#9a9a9a'; ctx.fillRect(-4, -h, 8, h);
+  ctx.fillRect(-20, -h + 10, 40, 5);
+  ctx.fillRect(-15, -h + 26, 30, 4);
+  ctx.strokeStyle = 'rgba(40,40,40,.55)'; ctx.lineWidth = 2;
+  for (let i = -1; i <= 1; i += 2){
+    ctx.beginPath(); ctx.moveTo(i * 18, -h + 12);
+    ctx.quadraticCurveTo(i * 90, -h + 34, i * 180, -h + 14); ctx.stroke();
+  }
+}
+function drawGopuram(d){
+  const w = 78 * d.sc, h = 170 * d.sc;
+  shadow(w * .72, .26);
+  const tiers = 6;
+  for (let i = 0; i < tiers; i++){
+    const t = i / tiers, t2 = (i + 1) / tiers;
+    const w1 = w * (1 - t * .62), w2 = w * (1 - t2 * .62);
+    const y1 = -h * t, y2 = -h * t2;
+    ctx.fillStyle = i % 2 ? '#efe4cf' : '#e4d3b4';
+    quad(-w1/2, y1, w1/2, y1, w2/2, y2, -w2/2, y2);
+    ctx.fillStyle = ['#c2452f','#2f7a9a','#d79b2a','#4a8a46'][i % 4];
+    ctx.fillRect(-w2/2, y2, w2, 4 * d.sc);
+    for (let k = 0; k < 4; k++){
+      ctx.fillStyle = ['#c2452f','#2f7a9a','#d79b2a','#4a8a46','#8a4ba0'][(i + k) % 5];
+      ctx.fillRect(-w1/2 + (k + .4) * w1/4.6, y1 - 9*d.sc, 5*d.sc, 8*d.sc);
+    }
+  }
+  ctx.fillStyle = '#d7b43a';
+  for (let k = -1; k <= 1; k++){
+    ctx.beginPath(); ctx.ellipse(k * 11 * d.sc, -h, 5*d.sc, 8*d.sc, 0, 0, 6.2832); ctx.fill();
+  }
+  ctx.fillStyle = '#3a2a1a'; ctx.fillRect(-11*d.sc, -h*.19, 22*d.sc, h*.19);
+}
+function drawAavin(d){
+  const w = 62 * d.sc, h = 48 * d.sc;
+  shadow(w*.7, .24);
+  ctx.fillStyle = '#eef3f7'; ctx.fillRect(-w/2, -h, w, h);
+  ctx.fillStyle = '#1b63b3'; ctx.fillRect(-w/2, -h, w, 14*d.sc);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + (10*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('AAVIN', 0, -h + 11*d.sc);
+  ctx.fillStyle = '#9fb7c9'; ctx.fillRect(-w*.34, -h*.62, w*.68, h*.4);
+  ctx.fillStyle = '#fff';
+  for (let i = 0; i < 4; i++) ctx.fillRect(-w*.3 + i*w*.17, -h*.56, w*.11, h*.2);
+}
+function drawSchool(d){
+  const w = 132 * d.sc, h = 64 * d.sc;
+  shadow(w*.7, .25);
+  ctx.fillStyle = '#f6ddb2'; ctx.fillRect(-w/2, -h, w, h);
+  ctx.fillStyle = '#b8552f';
+  quad(-w*.55, -h, w*.55, -h, w*.47, -h - 16*d.sc, -w*.47, -h - 16*d.sc);
+  ctx.fillStyle = '#2b4f7a';
+  for (let i = 0; i < 5; i++) ctx.fillRect(-w*.42 + i*w*.19, -h*.72, w*.11, h*.4);
+  ctx.fillStyle = '#7a4a22'; ctx.fillRect(-7*d.sc, -h*.42, 14*d.sc, h*.42);
+  ctx.fillStyle = '#1f6b4a'; ctx.fillRect(-w*.5, -h - 26*d.sc, w, 11*d.sc);
+  ctx.fillStyle = '#fff5cc'; ctx.font = 'bold ' + (8.4*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('MADURA SCHOOL · TKK', 0, -h - 17.5*d.sc);
+}
+function drawBunk(d){
+  const w = 112 * d.sc, h = 26 * d.sc;
+  shadow(w*.6, .24);
+  ctx.fillStyle = '#9fa5aa'; ctx.fillRect(-w*.42, -70*d.sc, 6*d.sc, 70*d.sc);
+  ctx.fillStyle = '#9fa5aa'; ctx.fillRect( w*.36, -70*d.sc, 6*d.sc, 70*d.sc);
+  ctx.fillStyle = '#e8e4da'; ctx.fillRect(-w/2, -82*d.sc, w, 13*d.sc);
+  ctx.fillStyle = '#f26522'; ctx.fillRect(-w/2, -82*d.sc, w*.5, 13*d.sc);
+  ctx.fillStyle = '#1f6b4a'; ctx.fillRect(0, -82*d.sc, w*.5, 13*d.sc);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + (8*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('INDIAN OIL', 0, -72.5*d.sc);
+  ctx.fillStyle = '#cfd3d6'; ctx.fillRect(-16*d.sc, -h, 13*d.sc, h);
+  ctx.fillStyle = '#cfd3d6'; ctx.fillRect(  4*d.sc, -h, 13*d.sc, h);
+  ctx.fillStyle = '#2b2b2b'; ctx.fillRect(-14*d.sc, -h+3*d.sc, 9*d.sc, 7*d.sc);
+}
+function drawTank(d){
+  const h = 108 * d.sc;
+  shadow(20, .22);
+  ctx.strokeStyle = '#a2a6aa'; ctx.lineWidth = 4;
+  for (const o of [-16, 16]){ ctx.beginPath(); ctx.moveTo(o, 0); ctx.lineTo(o * .5, -h + 20); ctx.stroke(); }
+  ctx.fillStyle = '#c9ccd0'; ctx.beginPath();
+  ctx.ellipse(0, -h + 10, 30*d.sc, 20*d.sc, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#9aa0a6'; ctx.fillRect(-30*d.sc, -h + 10, 60*d.sc, 10*d.sc);
+  ctx.fillStyle = '#1f4f7a'; ctx.font = 'bold ' + (8*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('TKK', 0, -h + 14*d.sc);
+}
+function drawBusStop(d){
+  const w = 96*d.sc, h = 48*d.sc;
+  shadow(w*.6, .22);
+  ctx.fillStyle = '#8d9298'; ctx.fillRect(-w/2, -h, 5*d.sc, h); ctx.fillRect(w/2-5*d.sc, -h, 5*d.sc, h);
+  ctx.fillStyle = '#2f7a9a'; ctx.fillRect(-w*.56, -h - 10*d.sc, w*1.12, 11*d.sc);
+  ctx.fillStyle = '#f2efe4'; ctx.fillRect(-w/2, -h*.42, w, 6*d.sc);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + (8*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('TKK BUS STOP', 0, -h - 1.8*d.sc);
+}
+function drawHoard(d){
+  const w = 120*d.sc, h = 70*d.sc;
+  shadow(10, .2);
+  ctx.fillStyle = '#7d7d82'; ctx.fillRect(-4, -46*d.sc, 8, 46*d.sc);
+  ctx.fillStyle = '#ffce42'; ctx.fillRect(-w/2, -46*d.sc - h, w, h);
+  ctx.fillStyle = '#c2452f'; ctx.fillRect(-w/2, -46*d.sc - h, w, h*.34);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + (11*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('WELCOME TO', 0, -46*d.sc - h*.62);
+  ctx.fillStyle = '#2a1a00'; ctx.font = 'bold ' + (13*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.fillText('THANAKKANKULAM', 0, -46*d.sc - h*.3);
+  ctx.font = 'bold ' + (8*d.sc).toFixed(0) + 'px Trebuchet MS, sans-serif';
+  ctx.fillText('PIN 625006 · MADURAI', 0, -46*d.sc - h*.09);
+}
+function drawKulam(d){
+  const w = 150 * d.sc;
+  ctx.fillStyle = '#6d8f4e';
+  ctx.beginPath(); ctx.ellipse(0, 0, w*.62, w*.2, 0, 0, 6.2832); ctx.fill();
+  const g = ctx.createLinearGradient(0, -w*.17, 0, w*.17);
+  g.addColorStop(0, '#9ed9e6'); g.addColorStop(1, '#3f8fa8');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, 0, w*.55, w*.16, 0, 0, 6.2832); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.4;
+  for (let i = 0; i < 3; i++){
+    ctx.beginPath();
+    ctx.ellipse(Math.sin(game.t + i) * 14, -4 + i * 6, w*.3 - i*8, 4, 0, 0, 6.2832); ctx.stroke();
+  }
+  ctx.fillStyle = '#2f7a3e';
+  for (let i = 0; i < 5; i++){
+    const a = i * 1.26 + d.sway;
+    ctx.beginPath(); ctx.ellipse(Math.cos(a)*w*.34, Math.sin(a)*w*.1, 9, 3.4, 0, 0, 6.2832); ctx.fill();
+  }
+  ctx.fillStyle = '#f49ac1';
+  ctx.beginPath(); ctx.ellipse(w*.16, -3, 4, 3, 0, 0, 6.2832); ctx.fill();
+}
+function drawRock(d){
+  const w = 36 * d.sc;
+  shadow(w*.8, .22);
+  ctx.fillStyle = '#9c9382';
+  ctx.beginPath(); ctx.moveTo(-w, 0); ctx.quadraticCurveTo(-w*.6, -w*.9, 0, -w*.8);
+  ctx.quadraticCurveTo(w*.7, -w*.95, w, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  ctx.beginPath(); ctx.ellipse(-w*.25, -w*.5, w*.3, w*.16, -.4, 0, 6.2832); ctx.fill();
+}
+function drawCycle(d){
+  const s = d.sc;
+  shadow(20*s, .2);
+  ctx.strokeStyle = '#2b2b2b'; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.arc(-14*s, -13*s, 12*s, 0, 6.2832); ctx.stroke();
+  ctx.beginPath(); ctx.arc( 14*s, -13*s, 12*s, 0, 6.2832); ctx.stroke();
+  ctx.strokeStyle = '#1f6b9a'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-14*s,-13*s); ctx.lineTo(0,-26*s); ctx.lineTo(14*s,-13*s);
+  ctx.lineTo(2*s,-13*s); ctx.closePath(); ctx.stroke();
+}
+const SCENE_FN = { palm:drawPalm, banana:drawBanana, hut:drawHut, shop:drawShop, lamp:drawLamp,
+  pole2:drawPole2, gopuram:drawGopuram, aavin:drawAavin, school:drawSchool, bunk:drawBunk,
+  tank:drawTank, bus_stop:drawBusStop, hoard:drawHoard, kulam:drawKulam, rock:drawRock, cycle:drawCycle };
+
+/* ========================= OBSTACLE DRAWINGS ========================= */
+function wheel(x, y, r, spin){
+  ctx.fillStyle = '#1d1d20'; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#9a9a9f'; ctx.beginPath(); ctx.arc(x, y, r * .45, 0, 6.2832); ctx.fill();
+  ctx.save(); ctx.translate(x, y); ctx.rotate(spin);
+  ctx.strokeStyle = '#6f6f75'; ctx.lineWidth = 1.4;
+  for (let i = 0; i < 4; i++){
+    ctx.beginPath(); ctx.moveTo(0,0);
+    ctx.lineTo(Math.cos(i*1.57)*r*.8, Math.sin(i*1.57)*r*.8); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawAuto(o){
+  const spin = -game.dist * .04;
+  shadow(46, .34);
+  ctx.fillStyle = '#ffd400';
+  ctx.beginPath();
+  ctx.moveTo(-40, 0); ctx.lineTo(-40, -42);
+  ctx.quadraticCurveTo(-40, -90, 0, -92);
+  ctx.quadraticCurveTo(40, -90, 40, -42);
+  ctx.lineTo(40, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0a7a3c';                       // green canopy stripe
+  ctx.beginPath(); ctx.moveTo(-40,-62); ctx.quadraticCurveTo(0,-96, 40,-62);
+  ctx.lineTo(40,-72); ctx.quadraticCurveTo(0,-104,-40,-72); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2b2b30'; ctx.fillRect(-30, -62, 60, 28);   // back opening
+  ctx.fillStyle = '#4c4c55'; ctx.fillRect(-26, -58, 52, 20);
+  ctx.fillStyle = '#e8e8e8'; ctx.fillRect(-24, -20, 48, 12);   // number plate
+  ctx.fillStyle = '#111'; ctx.font = 'bold 9px Trebuchet MS'; ctx.textAlign = 'center';
+  ctx.fillText('TN 59', 0, -11);
+  wheel(-30, -8, 11, spin); wheel(30, -8, 11, spin);
+  ctx.fillStyle = '#c0392b'; ctx.fillRect(-12, -96, 24, 5);
+}
+function drawBus(o){
+  const spin = -game.dist * .03;
+  shadow(58, .36);
+  ctx.fillStyle = '#1c6fa8';
+  ctx.beginPath(); ctx.moveTo(-46, 0); ctx.lineTo(-46, -148);
+  ctx.quadraticCurveTo(-46,-158,-36,-158); ctx.lineTo(36,-158);
+  ctx.quadraticCurveTo(46,-158,46,-148); ctx.lineTo(46, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#f2f2ee'; ctx.fillRect(-46, -112, 92, 10);
+  ctx.fillStyle = '#d14c2b'; ctx.fillRect(-46, -102, 92, 7);
+  ctx.fillStyle = '#17313f'; ctx.fillRect(-38, -142, 76, 26);   // rear glass
+  ctx.fillStyle = '#2d5a73';
+  for (let i = 0; i < 3; i++) ctx.fillRect(-38 + i*27, -92, 22, 26);
+  ctx.fillStyle = '#ffce42'; ctx.fillRect(-38, -156, 76, 11);   // route board
+  ctx.fillStyle = '#20160a'; ctx.font = 'bold 9px Trebuchet MS'; ctx.textAlign = 'center';
+  ctx.fillText('TKK — MADURAI', 0, -147.5);
+  ctx.fillStyle = '#b01f1f';
+  ctx.beginPath(); ctx.arc(-34, -26, 5, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.arc( 34, -26, 5, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#e8e8e8'; ctx.fillRect(-20, -22, 40, 11);
+  ctx.fillStyle = '#111'; ctx.font = 'bold 8px Trebuchet MS';
+  ctx.fillText('TN 58 N', 0, -13.5);
+  wheel(-28, -9, 12, spin); wheel(28, -9, 12, spin);
+}
+function drawLorry(o){
+  const spin = -game.dist * .03;
+  shadow(56, .36);
+  ctx.fillStyle = '#2f8f5b'; ctx.fillRect(-48, -136, 96, 120);   // container
+  ctx.fillStyle = '#246f47'; ctx.fillRect(-48, -136, 96, 16);
+  ctx.fillStyle = '#ffce42'; ctx.fillRect(-44, -112, 88, 26);
+  ctx.fillStyle = '#20160a'; ctx.font = 'bold 11px Trebuchet MS'; ctx.textAlign = 'center';
+  ctx.fillText('HORN OK', 0, -102);
+  ctx.fillText('PLEASE', 0, -91);
+  ctx.fillStyle = '#c0392b'; ctx.fillRect(-48, -84, 96, 6);
+  ctx.fillStyle = '#1b1b1f'; ctx.fillRect(-42, -22, 84, 10);
+  wheel(-30, -10, 12, spin); wheel(30, -10, 12, spin);
+  ctx.fillStyle = '#ff8c1a';
+  for (let i = -2; i <= 2; i++){ ctx.beginPath(); ctx.arc(i*17, -140, 3.4, 0, 6.2832); ctx.fill(); }
+}
+function drawTempo(o){
+  const spin = -game.dist * .04;
+  shadow(44, .33);
+  ctx.fillStyle = '#e8ecef'; ctx.fillRect(-40, -94, 80, 80);
+  ctx.fillStyle = '#1f6b9a'; ctx.fillRect(-40, -94, 80, 12);
+  ctx.fillStyle = '#4a5560'; ctx.fillRect(-32, -78, 64, 24);
+  ctx.fillStyle = '#c53a28'; ctx.fillRect(-40, -46, 80, 6);
+  ctx.fillStyle = '#e8e8e8'; ctx.fillRect(-18, -24, 36, 10);
+  ctx.fillStyle = '#111'; ctx.font = 'bold 8px Trebuchet MS'; ctx.textAlign='center';
+  ctx.fillText('TN 59 B', 0, -16);
+  wheel(-26, -9, 10, spin); wheel(26, -9, 10, spin);
+}
+function drawCart(o){
+  const spin = -game.dist * .035;
+  shadow(50, .32);
+  // two bulls
+  for (const bx of [-17, 17]){
+    ctx.save(); ctx.translate(bx, 0);
+    ctx.fillStyle = '#d8cdbb';
+    ctx.beginPath(); ctx.ellipse(0, -48, 17, 24, 0, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#cfc2ac';
+    ctx.beginPath(); ctx.ellipse(0, -74, 10, 11, 0, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = '#8a7a5c'; ctx.lineWidth = 3.4; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(-8,-82); ctx.quadraticCurveTo(-15,-96,-5,-99); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 8,-82); ctx.quadraticCurveTo( 15,-96, 5,-99); ctx.stroke();
+    ctx.fillStyle = '#7a5c3a';
+    ctx.fillRect(-11, -26, 6, 26); ctx.fillRect(5, -26, 6, 26);
+    ctx.restore();
+  }
+  // cart body
+  ctx.fillStyle = '#9a6b37'; ctx.fillRect(-42, -72, 84, 34);
+  ctx.fillStyle = '#7d5429'; ctx.fillRect(-42, -72, 84, 7);
+  ctx.fillStyle = '#c9a468';
+  for (let i = 0; i < 6; i++) ctx.fillRect(-40 + i*14, -64, 10, 24);
+  ctx.strokeStyle = '#6b4a22'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-42,-56); ctx.lineTo(-62,-66); ctx.stroke();
+  // big spoked wheels
+  ctx.save(); ctx.translate(-34, -28); ctx.rotate(spin);
+  ctx.strokeStyle = '#5b3d1c'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0,0,22,0,6.2832); ctx.stroke();
+  for (let i=0;i<8;i++){ ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(i*.785)*21, Math.sin(i*.785)*21); ctx.stroke(); }
+  ctx.restore();
+  ctx.save(); ctx.translate(34, -28); ctx.rotate(spin);
+  ctx.strokeStyle = '#5b3d1c'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0,0,22,0,6.2832); ctx.stroke();
+  for (let i=0;i<8;i++){ ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(i*.785)*21, Math.sin(i*.785)*21); ctx.stroke(); }
+  ctx.restore();
+}
+function drawStall(o){
+  shadow(48, .3);
+  ctx.fillStyle = '#8a6a3f'; ctx.fillRect(-44, -56, 88, 12);
+  ctx.fillStyle = '#6d5230'; ctx.fillRect(-40, -44, 6, 44); ctx.fillRect(34, -44, 6, 44);
+  for (let i = 0; i < 6; i++){
+    ctx.fillStyle = i % 2 ? '#1f8a5a' : '#f2efe4';
+    ctx.fillRect(-48 + i*16, -84, 16, 28);
+  }
+  ctx.fillStyle = '#e0431f';                  // tomatoes / fruit heaps
+  for (let i = -2; i <= 2; i++){ ctx.beginPath(); ctx.arc(i*14, -62, 6, 0, 6.2832); ctx.fill(); }
+  ctx.fillStyle = '#f5c03a';
+  for (let i = -2; i <= 2; i++){ ctx.beginPath(); ctx.arc(i*14 + 7, -62, 5, 0, 6.2832); ctx.fill(); }
+  ctx.fillStyle = '#3a2a16'; ctx.fillRect(-46, -90, 92, 7);
+}
+function drawCow(o){
+  const b = Math.sin(game.t * 2.3 + o.wob) * 2;
+  shadow(42, .3);
+  ctx.fillStyle = '#e4dccb';
+  ctx.beginPath(); ctx.ellipse(0, -26 + b, 36, 17, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#b9a98f';                  // hump
+  ctx.beginPath(); ctx.ellipse(-8, -40 + b, 13, 9, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#d9d0bd';
+  ctx.beginPath(); ctx.ellipse(30, -34 + b, 13, 11, 0, 0, 6.2832); ctx.fill();
+  ctx.strokeStyle = '#8a7a5c'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(26,-43+b); ctx.quadraticCurveTo(22,-56,31,-57); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(34,-43+b); ctx.quadraticCurveTo(38,-56,30,-58); ctx.stroke();
+  ctx.fillStyle = '#2b2b2b'; ctx.beginPath(); ctx.arc(36,-35+b,1.8,0,6.2832); ctx.fill();
+  ctx.fillStyle = '#c9bfa9';
+  for (const lx of [-24,-12, 14, 26]) ctx.fillRect(lx, -14 + b, 6, 14);
+  ctx.strokeStyle = '#c9bfa9'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-34,-30+b); ctx.quadraticCurveTo(-46,-18,-40,-6); ctx.stroke();
+  ctx.fillStyle = '#c23a2a'; ctx.fillRect(10, -44+b, 10, 4);   // kungumam mark on the forehead side
+}
+function drawGoat(o){
+  const b = Math.sin(game.t * 3.4 + o.wob) * 1.6;
+  shadow(28, .26);
+  ctx.fillStyle = '#4a4238';
+  ctx.beginPath(); ctx.ellipse(0, -20 + b, 24, 12, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#5a5146';
+  ctx.beginPath(); ctx.ellipse(20, -27 + b, 9, 7, 0, 0, 6.2832); ctx.fill();
+  ctx.strokeStyle = '#2f2a22'; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.moveTo(18,-33+b); ctx.quadraticCurveTo(16,-42,22,-43); ctx.stroke();
+  ctx.fillStyle = '#3b352c';
+  for (const lx of [-16,-7, 10, 17]) ctx.fillRect(lx, -10 + b, 4, 10);
+}
+function drawBarricade(o){
+  shadow(44, .28);
+  ctx.fillStyle = '#6d6d72'; ctx.fillRect(-40, -14, 6, 14); ctx.fillRect(34, -14, 6, 14);
+  for (let i = 0; i < 7; i++){
+    ctx.fillStyle = i % 2 ? '#d9372a' : '#f3f1e8';
+    ctx.save(); ctx.translate(-42 + i*12, -40); ctx.transform(1, 0, -.4, 1, 0, 0);
+    ctx.fillRect(0, 0, 12, 22); ctx.restore();
+  }
+  ctx.fillStyle = '#2f3a4a'; ctx.fillRect(-44, -44, 88, 5);
+  ctx.fillStyle = '#ffd34d'; ctx.fillRect(-20, -52, 40, 8);
+  ctx.fillStyle = '#20160a'; ctx.font = 'bold 6.6px Trebuchet MS'; ctx.textAlign='center';
+  ctx.fillText('WORK AHEAD', 0, -45.8);
+}
+function drawHay(o){
+  shadow(42, .28);
+  ctx.fillStyle = '#d4a93f';
+  ctx.beginPath(); ctx.ellipse(0, -22, 38, 22, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#c0922f';
+  ctx.beginPath(); ctx.ellipse(0, -36, 26, 13, 0, 0, 6.2832); ctx.fill();
+  ctx.strokeStyle = 'rgba(120,84,20,.6)'; ctx.lineWidth = 1.4;
+  for (let i = -3; i <= 3; i++){
+    ctx.beginPath(); ctx.moveTo(i*9, -42); ctx.lineTo(i*11, -4); ctx.stroke();
+  }
+  ctx.strokeStyle = '#8a5f1a'; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.ellipse(0, -22, 38, 22, 0, -.4, 3.5); ctx.stroke();
+}
+function drawPothole(o){
+  ctx.fillStyle = '#2a2b2f';
+  ctx.beginPath(); ctx.ellipse(0, 0, 42, 13, 0, 0, 6.2832); ctx.fill();
+  const g = ctx.createLinearGradient(0, -8, 0, 8);
+  g.addColorStop(0, '#6f8a9a'); g.addColorStop(1, '#2f4a58');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, -1, 36, 9, 0, 0, 6.2832); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.ellipse(Math.sin(game.t*3)*5, -2, 18, 4, 0, 0, 6.2832); ctx.stroke();
+  ctx.fillStyle = '#4a4b50';
+  ctx.beginPath(); ctx.ellipse(-26, 4, 9, 3.4, 0, 0, 6.2832); ctx.fill();
+}
+function drawBanner(o){
+  shadow(10, .18);
+  ctx.fillStyle = '#7d6b4a'; ctx.fillRect(-52, -150, 7, 150); ctx.fillRect(45, -150, 7, 150);
+  // the flex banner hanging above the road
+  ctx.fillStyle = '#c2452f'; ctx.fillRect(-54, -148, 108, 86);
+  ctx.fillStyle = '#ffce42'; ctx.fillRect(-50, -144, 100, 78);
+  ctx.fillStyle = '#9b1f1f'; ctx.fillRect(-50, -144, 100, 20);
+  ctx.fillStyle = '#fff6cf'; ctx.font = 'bold 12px Trebuchet MS'; ctx.textAlign = 'center';
+  ctx.fillText('TKK THIRUVIZHA', 0, -129);
+  ctx.fillStyle = '#5a2b00'; ctx.font = 'bold 10px Trebuchet MS';
+  ctx.fillText('VAZHTHUKKAL', 0, -112);
+  ctx.fillText('THANAKKANKULAM', 0, -99);
+  ctx.fillStyle = '#1f6b4a'; ctx.fillRect(-50, -90, 100, 24);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 9px Trebuchet MS';
+  ctx.fillText('SLIDE UNDER!', 0, -74);
+  // mango-leaf toran
+  ctx.fillStyle = '#2f7a3e';
+  for (let i = -5; i <= 5; i++){
+    ctx.beginPath(); ctx.ellipse(i*10, -62, 4, 9, 0, 0, 6.2832); ctx.fill();
+  }
+}
+function drawPoleOb(o){
+  shadow(10, .18);
+  ctx.fillStyle = '#8d8d93'; ctx.fillRect(-52, -150, 6, 150); ctx.fillRect(46, -150, 6, 150);
+  ctx.fillStyle = '#d9372a'; ctx.fillRect(-52, -78, 104, 10);
+  ctx.fillStyle = '#f3f1e8';
+  for (let i = 0; i < 5; i++) ctx.fillRect(-50 + i*21, -78, 10, 10);
+  ctx.fillStyle = '#ffce42'; ctx.fillRect(-30, -96, 60, 14);
+  ctx.fillStyle = '#20160a'; ctx.font = 'bold 8px Trebuchet MS'; ctx.textAlign='center';
+  ctx.fillText('HEIGHT LIMIT', 0, -86.5);
+  ctx.strokeStyle = 'rgba(40,40,40,.5)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-50,-148); ctx.quadraticCurveTo(0,-132,50,-148); ctx.stroke();
+}
+const OB_FN = { auto:drawAuto, bus:drawBus, lorry:drawLorry, tempo:drawTempo, cart:drawCart,
+  stall:drawStall, cow:drawCow, goat:drawGoat, barricade:drawBarricade, hay:drawHay,
+  pothole:drawPothole, banner:drawBanner, pole:drawPoleOb };
+
+/* ============================== PICKUPS ============================== */
+function drawCoin(p){
+  const a = p.sp;
+  const w = Math.abs(Math.cos(a));
+  ctx.save();
+  ctx.translate(0, -p.yy);
+  ctx.fillStyle = '#b8780c';
+  ctx.beginPath(); ctx.ellipse(0, 1.6, 13 * w + 1.2, 14, 0, 0, 6.2832); ctx.fill();
+  const g = ctx.createLinearGradient(-13, -14, 13, 14);
+  g.addColorStop(0, '#fff3b8'); g.addColorStop(.45, '#ffc83d'); g.addColorStop(1, '#e08a0a');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(0, 0, 13 * w, 14, 0, 0, 6.2832); ctx.fill();
+  if (w > .45){
+    ctx.fillStyle = '#8a5a05'; ctx.font = 'bold ' + (15 * w).toFixed(1) + 'px Trebuchet MS';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('₹', 0, .5);
+    ctx.textBaseline = 'alphabetic';
+  }
+  ctx.restore();
+}
+function drawPower(p){
+  const bob = Math.sin(game.t * 3 + p.sp) * 5;
+  ctx.save();
+  ctx.translate(0, -p.yy - bob);
+  // halo
+  const g = ctx.createRadialGradient(0, 0, 2, 0, 0, 34);
+  g.addColorStop(0, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 34, 0, 6.2832); ctx.fill();
+  ctx.rotate(Math.sin(game.t * 2 + p.sp) * .18);
+  if (p.kind === 'magnet'){            // jigarthanda glass
+    ctx.fillStyle = '#f4f0e8';
+    ctx.beginPath(); ctx.moveTo(-11,-18); ctx.lineTo(11,-18); ctx.lineTo(8,16); ctx.lineTo(-8,16); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#6b4226';
+    ctx.beginPath(); ctx.moveTo(-10,-10); ctx.lineTo(10,-10); ctx.lineTo(8,16); ctx.lineTo(-8,16); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff6e6'; ctx.beginPath(); ctx.ellipse(0,-18,11,4.4,0,0,6.2832); ctx.fill();
+    ctx.fillStyle = '#e94f8a'; ctx.fillRect(2,-30,3,14);
+    ctx.fillStyle = '#c2452f'; ctx.beginPath(); ctx.arc(-3,-24,4,0,6.2832); ctx.fill();
+  } else if (p.kind === 'shield'){     // Murugan's vel
+    ctx.fillStyle = '#c9a227'; ctx.fillRect(-2, -8, 4, 28);
+    ctx.fillStyle = '#ffd34d';
+    ctx.beginPath(); ctx.moveTo(0,-32); ctx.quadraticCurveTo(10,-14,0,-6); ctx.quadraticCurveTo(-10,-14,0,-32); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff3b8';
+    ctx.beginPath(); ctx.moveTo(0,-28); ctx.quadraticCurveTo(4,-16,0,-11); ctx.quadraticCurveTo(-4,-16,0,-28); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#c9a227'; ctx.fillRect(-9, -8, 18, 4);
+  } else {                             // karumbu / sugarcane
+    ctx.fillStyle = '#5a8a2f';
+    for (let i = -1; i <= 1; i++){
+      ctx.save(); ctx.rotate(i * .22);
+      ctx.fillRect(-4 + i*7, -26, 7, 46);
+      ctx.fillStyle = '#44701f';
+      for (let k = 0; k < 4; k++) ctx.fillRect(-4 + i*7, -26 + k*12, 7, 2.6);
+      ctx.fillStyle = '#5a8a2f';
+      ctx.restore();
+    }
+    ctx.fillStyle = '#7fb33f';
+    ctx.beginPath(); ctx.ellipse(-12,-30,12,4,-.5,0,6.2832); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(12,-32,12,4,.5,0,6.2832); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* =============================== DHARAN =============================== */
+function drawDharan(){
+  const rolling = game.roll > 0;
+  const air = !game.grounded;
+  const t = game.runT;
+  const sw = Math.sin(t), sw2 = Math.sin(t + Math.PI);
+  const bounce = air ? 0 : Math.abs(Math.sin(t)) * 3.4;
+  const lean = clamp((laneX(game.lane) - game.px) * -0.004, -.2, .2);
+
+  ctx.save();
+  ctx.rotate(lean);
+  if (rolling){ ctx.translate(0, 0); ctx.scale(1.08, .5); }
+
+  const skin = '#8a5a35', skinD = '#774a28';
+  const shirt = '#1f9d8a', shirtD = '#17776a';
+  const short = '#2b3a55';
+
+  // legs
+  ctx.strokeStyle = skin; ctx.lineWidth = 9; ctx.lineCap = 'round';
+  if (air){
+    ctx.beginPath(); ctx.moveTo(-4,-34); ctx.quadraticCurveTo(-16,-22,-20,-6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 5,-34); ctx.quadraticCurveTo( 16,-26, 14,-12); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(-3,-34); ctx.quadraticCurveTo(-6 + sw*13, -20, -2 + sw*21, -2 - Math.max(0,sw)*9); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 3,-34); ctx.quadraticCurveTo( 6 + sw2*13, -20,  2 + sw2*21, -2 - Math.max(0,sw2)*9); ctx.stroke();
+  }
+  // shoes
+  ctx.fillStyle = '#ececec';
+  const f1x = air ? -20 : -2 + sw*21, f1y = air ? -6 : -2 - Math.max(0,sw)*9;
+  const f2x = air ?  14 : 2 + sw2*21, f2y = air ? -12 : -2 - Math.max(0,sw2)*9;
+  ctx.beginPath(); ctx.ellipse(f1x, f1y, 8, 4.4, 0, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(f2x, f2y, 8, 4.4, 0, 0, 6.2832); ctx.fill();
+
+  // shorts
+  ctx.fillStyle = short;
+  ctx.beginPath(); ctx.moveTo(-12,-48+bounce*.2); ctx.lineTo(12,-48+bounce*.2);
+  ctx.lineTo(10,-30); ctx.lineTo(-10,-30); ctx.closePath(); ctx.fill();
+
+  // torso (jersey)
+  ctx.fillStyle = shirt;
+  ctx.beginPath();
+  ctx.moveTo(-13, -46 + bounce*.3); ctx.lineTo(13, -46 + bounce*.3);
+  ctx.quadraticCurveTo(16, -62 + bounce*.5, 12, -70 + bounce*.6);
+  ctx.lineTo(-12, -70 + bounce*.6);
+  ctx.quadraticCurveTo(-16, -62 + bounce*.5, -13, -46 + bounce*.3);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = shirtD;
+  ctx.fillRect(-13, -56 + bounce*.4, 26, 4);
+  ctx.fillStyle = '#ffd34d';
+  ctx.font = 'bold 9px Trebuchet MS'; ctx.textAlign = 'center';
+  ctx.fillText('TKK', 0, -60 + bounce*.45);
+
+  // arms
+  ctx.strokeStyle = skinD; ctx.lineWidth = 7.5;
+  if (air){
+    ctx.beginPath(); ctx.moveTo(-12,-66+bounce*.6); ctx.quadraticCurveTo(-26,-74,-28,-86); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 12,-66+bounce*.6); ctx.quadraticCurveTo( 26,-74, 28,-86); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(-12,-66+bounce*.6); ctx.quadraticCurveTo(-18 - sw2*8,-56,-14 - sw2*15,-44); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 12,-66+bounce*.6); ctx.quadraticCurveTo( 18 - sw*8,-56, 14 - sw*15,-44); ctx.stroke();
+  }
+
+  // head
+  const hy = -84 + bounce * .7;
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(0, hy, 12.5, 13.5, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#17120e';  // hair
+  ctx.beginPath(); ctx.arc(0, hy - 3, 12.8, Math.PI * 1.04, Math.PI * 2.0); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-9, hy - 4, 5, 6, .5, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(9, hy - 5, 5.6, 5.6, -.4, 0, 6.2832); ctx.fill();
+  // face
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(-4.4, hy, 3.1, 2.6, 0, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( 4.4, hy, 3.1, 2.6, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#121212';
+  ctx.beginPath(); ctx.arc(-3.8, hy + .3, 1.5, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.arc( 5.0, hy + .3, 1.5, 0, 6.2832); ctx.fill();
+  ctx.strokeStyle = '#4a2a14'; ctx.lineWidth = 1.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(0, hy + 4.2, 4.2, .25, Math.PI - .25); ctx.stroke();
+  // vibhuti / thiruneeru lines on the forehead
+  ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.1;
+  for (let i = 0; i < 3; i++){
+    ctx.beginPath(); ctx.moveTo(-5, hy - 7 + i*1.9); ctx.lineTo(5, hy - 7 + i*1.9); ctx.stroke();
+  }
+
+  ctx.restore();
+
+  // shield bubble
+  if (game.shield > 0){
+    ctx.save();
+    ctx.strokeStyle = 'rgba(125,211,255,' + (.55 + Math.sin(game.t*7)*.2) + ')';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(0, -46, 34, 52, 0, 0, 6.2832); ctx.stroke();
+    ctx.fillStyle = 'rgba(125,211,255,.1)';
+    ctx.beginPath(); ctx.ellipse(0, -46, 34, 52, 0, 0, 6.2832); ctx.fill();
+    ctx.restore();
+  }
+  if (game.magnet > 0){
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,158,196,.5)'; ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++){
+      const r = 26 + ((game.t * 70 + i * 26) % 60);
+      ctx.globalAlpha = 1 - r / 90;
+      ctx.beginPath(); ctx.ellipse(0, -44, r, r * .62, 0, 0, 6.2832); ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+/* ============================== THE KAALAI ============================== */
+function drawBull(){
+  if (game.chase <= .02) return;
+  const c = game.chase;                       // 0..1
+  const sc = (H / 760) * (0.55 + c * 1.25);
+  const bx = W * 0.5 + (game.px - camX) * 1.05;
+  const by = H + 40 - c * (H * .20) - Math.abs(Math.sin(game.t * 9)) * 10 * c;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, .25 + c * 1.1);
+  ctx.translate(bx, by);
+  ctx.scale(sc, sc);
+  const g = Math.sin(game.t * 11) * 4;
+
+  // dust
+  ctx.fillStyle = 'rgba(190,170,130,.35)';
+  for (let i = 0; i < 5; i++){
+    const a = game.t * 6 + i;
+    ctx.beginPath(); ctx.ellipse(Math.sin(a) * 60, -8 + Math.cos(a) * 6, 26 + i * 5, 11, 0, 0, 6.2832); ctx.fill();
+  }
+  // legs
+  ctx.strokeStyle = '#4a3a28'; ctx.lineWidth = 11; ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++){
+    const o = (i < 2 ? -1 : 1) * (26 + (i % 2) * 16);
+    ctx.beginPath(); ctx.moveTo(o, -56); ctx.lineTo(o + Math.sin(game.t*12 + i*1.7)*16, 0); ctx.stroke();
+  }
+  // body
+  ctx.fillStyle = '#5c4631';
+  ctx.beginPath(); ctx.ellipse(0, -84 + g, 62, 40, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#6b523a';
+  ctx.beginPath(); ctx.ellipse(-6, -116 + g, 26, 17, 0, 0, 6.2832); ctx.fill();   // hump
+  // head
+  ctx.fillStyle = '#4e3b29';
+  ctx.beginPath(); ctx.ellipse(0, -118 + g, 30, 26, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#3a2c1e';
+  ctx.beginPath(); ctx.ellipse(0, -100 + g, 18, 15, 0, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#211a12';
+  ctx.beginPath(); ctx.arc(-7, -98 + g, 3.4, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.arc( 7, -98 + g, 3.4, 0, 6.2832); ctx.fill();
+  // angry eyes
+  ctx.fillStyle = '#ffe9a8';
+  ctx.beginPath(); ctx.ellipse(-13, -124 + g, 6, 5, .3, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( 13, -124 + g, 6, 5, -.3, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = '#b01f1f';
+  ctx.beginPath(); ctx.arc(-13, -124 + g, 2.8, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.arc( 13, -124 + g, 2.8, 0, 6.2832); ctx.fill();
+  // horns (painted blue/red like jallikattu bulls)
+  ctx.strokeStyle = '#2f6fa8'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-22,-134+g); ctx.quadraticCurveTo(-54,-158,-40,-186); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo( 22,-134+g); ctx.quadraticCurveTo( 54,-158, 40,-186); ctx.stroke();
+  ctx.strokeStyle = '#d9372a'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(-36,-168+g); ctx.lineTo(-44,-178+g); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo( 36,-168+g); ctx.lineTo( 44,-178+g); ctx.stroke();
+  // bell
+  ctx.fillStyle = '#c9a227';
+  ctx.beginPath(); ctx.arc(0, -88 + g, 8, 0, 6.2832); ctx.fill();
+  // snort
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  const pf = (Math.sin(game.t * 5) * .5 + .5);
+  ctx.beginPath(); ctx.ellipse(-16, -96 + g, 7 + pf*6, 4 + pf*3, 0, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( 16, -96 + g, 7 + pf*6, 4 + pf*3, 0, 0, 6.2832); ctx.fill();
+  ctx.restore();
+}
+
+/* ============================== MAIN DRAW ============================== */
+function render(){
+  ctx.save();
+  if (game.shake > 0) ctx.translate(rnd(-game.shake, game.shake), rnd(-game.shake, game.shake));
+
+  drawSky();
+  drawHills();
+  drawRoad();
+
+  // Build a single far→near list so everything overlaps correctly.
+  const list = [];
+  for (const s of game.scenery){
+    const z = s.z - game.dist + PLAYER_Z;
+    if (z > 40 && z < FAR_Z) list.push({ z, k: 0, o: s });
+  }
+  for (const o of game.objs){
+    const z = o.z - game.dist + PLAYER_Z;
+    if (z > 40 && z < FAR_Z) list.push({ z, k: 1, o });
+  }
+  for (const p of game.pickups){
+    const z = p.z - game.dist + PLAYER_Z;
+    if (z > 40 && z < FAR_Z) list.push({ z, k: 2, o: p });
+  }
+  list.push({ z: PLAYER_Z, k: 3, o: null });
+  list.sort((a, b) => b.z - a.z);
+
+  for (const it of list){
+    if (it.k === 0){
+      const fn = SCENE_FN[it.o.type]; if (fn) sprite(it.o.x, it.z, fn, it.o);
+    } else if (it.k === 1){
+      const fn = OB_FN[it.o.type]; if (fn) sprite(laneX(it.o.lane), it.z, fn, it.o);
+    } else if (it.k === 2){
+      const p = it.o;
+      p.yy = p.y + p.oy;
+      sprite(laneX(p.lane) + p.ox, it.z, p.kind === 'coin' ? drawCoin : drawPower, p);
+    } else {
+      // Dharan + his shadow
+      const pr = proj(game.px, 0, PLAYER_Z);
+      ctx.save();
+      ctx.translate(pr.x, pr.y);
+      ctx.scale(pr.s, pr.s);
+      const sa = clamp(.34 - game.py * .0022, .06, .34);
+      const ss = clamp(26 - game.py * .07, 12, 26);
+      ctx.fillStyle = 'rgba(20,16,10,' + sa + ')';
+      ctx.beginPath(); ctx.ellipse(0, 0, ss, ss * .3, 0, 0, 6.2832); ctx.fill();
+      ctx.translate(0, -game.py);
+      drawDharan();
+      ctx.restore();
+    }
+  }
+
+  // particles
+  for (const f of game.fx){
+    const p = proj(f.x, f.y, f.z);
+    if (p.y < horizonY) continue;
+    ctx.globalAlpha = clamp(f.life / f.max, 0, 1);
+    ctx.fillStyle = f.col;
+    ctx.beginPath(); ctx.arc(p.x, p.y, f.r * p.s, 0, 6.2832); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  drawBull();
+
+  // speed streaks
+  const sn = (game.speed - SPEED_MIN) / (SPEED_MAX - SPEED_MIN);
+  if (sn > .25 && state === S.PLAY){
+    ctx.strokeStyle = 'rgba(255,255,255,' + (sn * .1) + ')';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 14; i++){
+      const a = (i / 14) * 6.2832 + game.t * 2.2;
+      const r0 = 170 + (i % 4) * 36, r1 = r0 + 90 * sn;
+      const cx0 = W * .5, cy0 = horizonY + 40;
+      ctx.beginPath();
+      ctx.moveTo(cx0 + Math.cos(a) * r0, cy0 + Math.sin(a) * r0 * .62);
+      ctx.lineTo(cx0 + Math.cos(a) * r1, cy0 + Math.sin(a) * r1 * .62);
+      ctx.stroke();
+    }
+  }
+
+  // warm Madurai haze
+  const hz = ctx.createLinearGradient(0, horizonY - 30, 0, horizonY + 120);
+  hz.addColorStop(0, 'rgba(255,196,120,.42)');
+  hz.addColorStop(1, 'rgba(255,196,120,0)');
+  ctx.fillStyle = hz; ctx.fillRect(0, horizonY - 30, W, 150);
+
+  // vignette
+  const vg = ctx.createRadialGradient(W*.5, H*.5, Math.min(W,H)*.35, W*.5, H*.5, Math.max(W,H)*.78);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.42)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+  if (game.hitFlash > 0){
+    ctx.fillStyle = 'rgba(255,60,40,' + (game.hitFlash * .32) + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+  if (game.chase > .3){
+    ctx.fillStyle = 'rgba(180,30,20,' + ((game.chase - .3) * .22) + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+  ctx.restore();
+}
+
+/* =============================== LOOP =============================== */
+let last = performance.now();
+function frame(now){
+  let dt = (now - last) / 1000;
+  last = now;
+  if (dt > .05) dt = .05;
+  update(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+
+/* =============================== BOOT =============================== */
+try { game.best = parseInt(localStorage.getItem('dharan_best') || '0', 10) || 0; } catch(e){ game.best = 0; }
+resize();
+resetGame();
+game.speed = 540;              // menu idle speed
+requestAnimationFrame(frame);
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a46a51c9f9e1460f',t:'MTc5MTM0ODk4OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
